@@ -1,0 +1,16 @@
+[project]
+name = "workshop_qut_mobile_robots"
+version = "0.1.0"
+description = "Workshop materials for QUT mobile robots including Python scripts and Rhino assets."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "UNLICENSED"}
+authors = [ { name = "Augmented Fabrication Lab" } ]
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = []

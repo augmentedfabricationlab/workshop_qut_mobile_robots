@@ -1,0 +1,56 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv/
+venv/
+env/
+
+# Build / packaging
+build/
+dist/
+.eggs/
+*.egg-info/
+*.egg
+MANIFEST
+
+# Coverage / testing caches
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+.dmypy.json
+.cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+
+# Rhino backups (keep original .3dm files)
+*.3dmbak
+*.RhinoBackup
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Docker runtime logs
+docker/*.log
+
+# Security / keys (adjust as needed)
+*.pem
+*.key
+
+# Local tooling
+*.local.json
