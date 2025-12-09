@@ -8,7 +8,7 @@ import argparse
 # from compas.geometry import Frame
 
 # 1) connect to remote rosbridge
-def connect_to_ros(host='192.168.0.99', port=9090):
+def connect_to_ros(host='192.168.0.222', port=9090):
     ros = roslibpy.Ros(host=host, port=port)
     try:
         ros.run()
@@ -31,7 +31,7 @@ class MarkerRecorder:
         self.is_recording = False
         
         # Subscribe to the /tf topic
-        self.tf_topic = roslibpy.Topic(ros, '/marker_poses', 'tf2_msgs/TFMessage')
+        self.tf_topic = roslibpy.Topic(ros, '/aruco_markers', 'ros2_aruco_interfaces/msg/ArucoMarkers')
         self.tf_topic.subscribe(self.tf_callback)
 
     def tf_callback(self, message):
@@ -46,41 +46,33 @@ class MarkerRecorder:
             print(f"Recording complete (duration: {self.duration} seconds)")
             self.stop_recording()
             return
+        
+        for marker_id, pose in zip(message['marker_ids'], message['poses']):
+            pt = pose['position']
+            q = pose['orientation']
+                
+            # Convert to lists for easier processing
+            position = [float(pt['x']), float(pt['y']), float(pt['z'])]
+            orientation = [float(q['x']), float(q['y']), float(q['z']), float(q['w'])]
+
+            if marker_id not in self.markers:
+                self.markers[marker_id] = {
+                    "frames": [],
+                    "timestamps": [],
+                    "optimized": None
+                }
+            # Append the data
+            self.markers[marker_id]["frames"].append({
+                "position": position,
+                "orientation": orientation,
+                "stamp": message['header']['stamp']
+            })
+            self.markers[marker_id]["timestamps"].append(current_time)
             
-        for tf in message['transforms']:
-            frame_id = tf['child_frame_id']
-            if frame_id.startswith('marker_'):
-                # Get marker id from frame_id
-                marker_id = frame_id.split('_')[-1]
-                
-                # Extract translation and rotation            
-                pt = tf['transform']['translation']
-                q = tf['transform']['rotation']
-                
-                # Convert to lists for easier processing
-                position = [float(pt['x']), float(pt['y']), float(pt['z'])]
-                orientation = [float(q['x']), float(q['y']), float(q['z']), float(q['w'])]
-                
-                # Initialize marker data structure if needed
-                if marker_id not in self.markers:
-                    self.markers[marker_id] = {
-                        "frames": [],
-                        "timestamps": [],
-                        "optimized": None
-                    }
-                
-                # Append the data
-                self.markers[marker_id]["frames"].append({
-                    "position": position,
-                    "orientation": orientation,
-                    "stamp": tf['header']['stamp']
-                })
-                self.markers[marker_id]["timestamps"].append(current_time)
-                
-                if self.duration_limited:
-                    # Print remaining time for the recording
-                    remaining = self.duration - (current_time - self.start_time)
-                    print(f"[{current_time:.3f}] Recorded marker {marker_id} - {remaining:.1f}s remaining")
+            if self.duration_limited:
+                # Print remaining time for the recording
+                remaining = self.duration - (current_time - self.start_time)
+                print(f"[{current_time:.3f}] Recorded marker {marker_id} - {remaining:.1f}s remaining")
     
     def start_recording(self):
         self.markers = dict()
@@ -324,7 +316,7 @@ class MarkerRecorder:
 
 def main():
     parser = argparse.ArgumentParser(description='Record and optimize ArUco marker positions')
-    parser.add_argument('--host', default='192.168.0.99', help='ROS bridge host')
+    parser.add_argument('--host', default='192.168.0.222', help='ROS bridge host')
     parser.add_argument('--port', type=int, default=9090, help='ROS bridge port')
     parser.add_argument('--duration', type=float, default=10.0, help='Recording duration in seconds')
     parser.add_argument('--output', default='optimized_markers.json', help='Output JSON file')
